@@ -1,8 +1,20 @@
-build:
-    go build -o server main.go
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GORUN=$(GOCMD) run
+BINARY_NAME=app_name
 
-run: build
-    ./server
+all: watch
+
+build:
+	$(GOBUILD) -o $(BINARY_NAME) -v
+
+run:
+	$(GORUN) main.go
 
 watch:
-    reflex -s -r '\.go$$' make run
+	reflex -r '\.go$$' -- sh -c '$(GORUN) main.go'
+
+clean:
+	rm -f $(BINARY_NAME)
+
+.PHONY: all build run watch clean
