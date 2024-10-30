@@ -1,18 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"go-rest-api/config"
+	"go-rest-api/routes"
+	"log"
+
 	"github.com/gofiber/fiber/v2"
-	// "go-rest-api/modules/post/post.route"
 )
 
 func main () {
 
 	app := fiber.New()
-	app.Get("/testApi", func(ctx *fiber.Ctx) error {
-		return ctx.Status(200).JSON(fiber.Map{
-			"success": true,
-			"message": "Go fiber first app",
-		})
-	})
-	app.Listen(":3000")
+	
+	routes.PostRoutes(app.Group("/post"))
+
+	fmt.Println(config.Config("MONGO_URI"), config.Config("MONGO_DATABASE"))
+	err:= config.InitializeMongoDB(config.Config("MONGO_URI"), config.Config("MONGO_DATABASE"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	port := config.Config("PORT")
+	log.Fatal(app.Listen(port))
 }
