@@ -1,3 +1,4 @@
+# Go parameters
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GORUN=$(GOCMD) run

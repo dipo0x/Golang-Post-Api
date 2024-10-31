@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,11 +23,6 @@ func InitializeMongoDB(uri, dbName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = client.Connect(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to connect to MongoDB: %w", err)
-	}
-
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to ping MongoDB: %w", err)
@@ -38,7 +32,7 @@ func InitializeMongoDB(uri, dbName string) error {
 	MongoDatabase = client.Database(dbName)
 
 	log.Println("Connected to MongoDB successfully")
-	return nil
+	return err
 }
 
 func DisconnectMongoDB() {
@@ -51,4 +45,3 @@ func DisconnectMongoDB() {
 		log.Println("Disconnected from MongoDB successfully")
 	}
 }
-
