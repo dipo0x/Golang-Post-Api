@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetPosts(c *fiber.Ctx) error {
@@ -19,7 +18,8 @@ func GetPosts(c *fiber.Ctx) error {
 
     cursor, err := collection.Find(context.Background(), bson.M{})
     if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": 400,
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "status": 400,
 			"success": false,
 			"error": "Failed to retrieve posts"})
     }
@@ -28,7 +28,8 @@ func GetPosts(c *fiber.Ctx) error {
     for cursor.Next(context.Background()) {
         var post models.Post
         if err := cursor.Decode(&post); err != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": 400,
+            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "status": 400,
 			"success": false,
 			"error": "Failed to decode post"})
         }
@@ -45,6 +46,7 @@ func GetPosts(c *fiber.Ctx) error {
     var iPosts []types.IPost
     for _, post := range posts {
         iPost := types.IPost{
+            ID: post.ID,
             Title:   post.Title,
             Content: post.Content,
             Author:  post.Author,
@@ -103,12 +105,13 @@ func EditPost(c *fiber.Ctx) error {
 
     collection := config.MongoDatabase.Collection("posts")
     var existingPost models.Post
-    objID, err := primitive.ObjectIDFromHex(postID)
+    objID, err := uuid.Parse(postID)
     if err != nil {
+        println(err, postID)
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "status":  400,
             "success": false,
-            "error":   "Invalid post ID",
+            "error": "Invalid post ID",
         })
     }
 
@@ -117,7 +120,7 @@ func EditPost(c *fiber.Ctx) error {
         return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
             "status":  404,
             "success": false,
-            "error":   "Post not found",
+            "error":  "Post not found",
         })
     }
 
@@ -154,5 +157,45 @@ func EditPost(c *fiber.Ctx) error {
         "status":  200,
         "success": true,
         "data": existingPost,
+    })
+}
+
+func DeletePost(c *fiber.Ctx) error {
+    postID := c.Params("id")
+
+    collection := config.MongoDatabase.Collection("posts")
+    var existingPost models.Post
+    objID, err := uuid.Parse(postID)
+    if err != nil {
+        println(err, postID)
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  400,
+            "success": false,
+            "error": "Invalid post ID",
+        })
+    }
+
+    filter := bson.M{"_id": objID}
+    if err := collection.FindOne(context.Background(), filter).Decode(&existingPost); err != nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "status": 404,
+            "success": false,
+            "error": "Post not found",
+        })
+    }
+
+    _, err = collection.DeleteOne(context.Background(), filter)
+    if err != nil {
+        return c.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+            "status": 500,
+            "success": false,
+            "error": "Something went wrong",
+        })
+    }
+
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "status": 200,
+        "success": true,
+        "error": "Post successfully deleted",
     })
 }
