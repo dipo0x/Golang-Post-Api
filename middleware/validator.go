@@ -12,10 +12,11 @@ func ValidateCreatePost(c *fiber.Ctx) error {
 	body := new(types.IPost)
 
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{ 
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status": 400,
 			"success": false,
-			"error": "Invalid request payload" })
+			"error": "Invalid request payload",
+		})
 	}
 
 	err := Validator.Struct(body)
@@ -32,6 +33,5 @@ func ValidateCreatePost(c *fiber.Ctx) error {
 			"error": errors,
 		})
 	}
-
 	return c.Next()
 }

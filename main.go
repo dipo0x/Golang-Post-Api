@@ -11,6 +11,7 @@ func main () {
 
 	app := fiber.New()
 	
+	routes.IndexRoutes(app.Group("/"))
 	routes.PostRoutes(app.Group("/post"))
 
 	err:= config.InitializeMongoDB(config.Config("MONGO_URI"), config.Config("MONGO_DATABASE"))
